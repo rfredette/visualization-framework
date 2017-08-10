@@ -174,7 +174,6 @@ export default class Table extends AbstractGraph {
     }
 
     handleSortOrderChange(column, order) {
-        console.log("columns", column, order);
         this.filterData = this.filterData.sort(
           (a, b) => {
             return order === 'desc' ? eval(`b["${column}"]`) > eval(`a["${column}"]`) : eval(`a["${column}"]`) > eval(`b["${column}"]`)
