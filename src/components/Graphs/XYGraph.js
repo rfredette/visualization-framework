@@ -28,7 +28,7 @@ export default class XYGraph extends AbstractGraph {
 
         return (
             <g>
-                { xLabel ? (
+                { xLabel && xLabelPosition ? (
                     <text
                         className="axis-label"
                         x={ xLabelPosition.left }
@@ -40,7 +40,7 @@ export default class XYGraph extends AbstractGraph {
                     </text>
                   ) : null
                 }
-                { yLabel ? (
+                { yLabel && yLabelPosition ? (
                     <text
                         className="axis-label"
                         transform={[

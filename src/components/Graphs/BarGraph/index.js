@@ -84,7 +84,10 @@ export default class BarGraph extends XYGraph {
           yTicks,
           yTickSizeInner,
           yTickSizeOuter,
-          otherOptions
+          otherOptions,
+          hideXAxis,
+          yLabelWidth,
+          legendWidth
         } = this.getConfiguredProperties();
 
         const vertical = orientation  === "vertical";
@@ -106,8 +109,7 @@ export default class BarGraph extends XYGraph {
 
         let xAxisHeight       = xLabel ? chartHeightToPixel : 0;
         let xAxisLabelWidth   = this.longestLabelLength(data, xLabelFn, xTickFormat) * chartWidthToPixel;
-        let yAxisLabelWidth   = this.longestLabelLength(data, yLabelFn, yTickFormat) * chartWidthToPixel;
-
+        let yAxisLabelWidth   = yLabelWidth * chartWidthToPixel;
         let overAllAvailableWidth = width - (margin.left + margin.right);
         let maxWidthPercentage = 0.20;
         let trucatedYAxisWidth = ((overAllAvailableWidth * maxWidthPercentage) < yAxisLabelWidth ? (overAllAvailableWidth * maxWidthPercentage) : yAxisLabelWidth);
@@ -118,21 +120,19 @@ export default class BarGraph extends XYGraph {
 
         let paddedYAxisWidth = trucatedYAxisWidth - 40;
 
-        if (legend.show)
-        {
-            legend.width = vertical ? xAxisLabelWidth : yAxisLabelWidth;
+        const widthLegend = vertical ? legendWidth * chartWidthToPixel : xAxisLabelWidth;
 
-            // Compute the available space considering a legend
-            if (isVerticalLegend)
-            {
-                leftMargin      +=  legend.width;
-                availableWidth  -=  legend.width;
-            }
-            else {
-                const nbElementsPerLine  = parseInt(availableWidth / legend.width, 10);
-                const nbLines            = parseInt(data.length / nbElementsPerLine, 10);
-                availableHeight         -= nbLines * legend.circleSize * circleToPixel + chartHeightToPixel;
-            }
+        if(legend.show || vertical) {
+            legend.width = widthLegend;
+            leftMargin      +=  widthLegend;
+            availableWidth  -=  widthLegend;
+        }
+
+        if (legend.show  && !isVerticalLegend)
+        {
+            const nbElementsPerLine  = parseInt(availableWidth / legend.width, 10);
+            const nbLines            = parseInt(data.length / nbElementsPerLine, 10);
+            availableHeight         -= nbLines * legend.circleSize * circleToPixel + chartHeightToPixel;
         }
 
         let xScale, yScale;
@@ -207,6 +207,11 @@ export default class BarGraph extends XYGraph {
             // We use chartWidthToPixel to compensate the rotation of the title
             left: margin.left + chartWidthToPixel + (isVerticalLegend ? legend.width : 0),
             top: margin.top + availableHeight / 2
+        }
+
+        if(hideXAxis) {
+            xAxis.tickValues([]);
+            xTitlePosition = null;   
         }
 
         let xAxisGraph = <g

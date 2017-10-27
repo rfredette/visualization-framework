@@ -18,6 +18,7 @@ import {
 
 import {properties} from "./default.config";
 
+
 class MultiLineGraph extends XYGraph {
 
     constructor(props) {
@@ -43,7 +44,6 @@ class MultiLineGraph extends XYGraph {
           colors,
           dateHistogram,
           legend,
-          linesColumn,
           margin,
           stroke,
           xColumn,
@@ -61,20 +61,18 @@ class MultiLineGraph extends XYGraph {
           yTickSizeOuter,
           brushEnabled,
           zeroStart,
-          circleRadius
-        } = this.getConfiguredProperties();
+          circleRadius,
+          hideXAxis,
+          yLabelWidth,
+          legendWidth
+        } = this.getConfiguredProperties();      
 
         let finalYColumn = typeof yColumn === 'object' ? yColumn : [yColumn];
-
-        let updatedLinesLabel = [];
-        if(linesColumn) {
-            updatedLinesLabel = typeof linesColumn === 'object' ? linesColumn : [linesColumn];
-        }
 
         let legendsData = finalYColumn.map((d, i) => {
             return {
                 'key'   : d,
-                'value' : updatedLinesLabel[i] ? updatedLinesLabel[i] : d
+                'value' : finalYColumn[i] ? finalYColumn[i] : d
             };
         });
 
@@ -96,55 +94,42 @@ class MultiLineGraph extends XYGraph {
 
         const yLabelUnformattedFn  = (d) => d['yColumn'];
 
-        const yLabelFn         = (d) => {
-            if(!yTickFormat) {
-                return d['yColumn'];
-            }
-            const formatter = format(yTickFormat);
-            return formatter(d['yColumn']);
-        };
-
-        const legendFn         = (d) => d['value'];
         const label            = (d) => d['value'];
         const scale            = this.scaleColor(legendsData, 'key');
         const getColor         = (d) => scale ? scale(d['key']) : stroke.color || colors[0];
 
         let xAxisHeight       = xLabel ? chartHeightToPixel : 0;
-        let legendWidth       = legend.show && legendsData.length >= 1 ? this.longestLabelLength(legendsData, legendFn) * chartWidthToPixel : 0;
 
-        let yLabelWidth       = this.longestLabelLength(filterDatas, yLabelFn) * chartWidthToPixel;
+        let yAxisLabelWidth   = yLabelWidth * chartWidthToPixel;
+        const widthLegend     = legendWidth * chartWidthToPixel;
+        
+        let leftMargin        = margin.left + yAxisLabelWidth;
+        let availableWidth    = width - (margin.left + margin.right + yAxisLabelWidth);
+        let availableHeight   = height - (margin.top + margin.bottom + xAxisHeight + chartHeightToPixel);
 
-        let leftMargin        = margin.left + yLabelWidth;
-        let availableWidth    = width - (margin.left + margin.right + yLabelWidth);
-        let availableHeight   = height - (margin.top + margin.bottom + chartHeightToPixel + xAxisHeight);
+        if(legend.show)
+          legend.width = widthLegend;
 
-        if (legend.show)
+        // Compute the available space considering a legend            
+        if (legend.show && !isVerticalLegend)
         {
-            legend.width = legendWidth;
-
-            // Compute the available space considering a legend
-            if (isVerticalLegend)
-            {
-                leftMargin      +=  legend.width;
-                availableWidth  -=  legend.width;
-            }
-            else {
-                const nbElementsPerLine  = parseInt(availableWidth / legend.width, 10);
-                const nbLines            = parseInt(legendsData.length / nbElementsPerLine, 10);
-                availableHeight         -= nbLines * legend.circleSize * circleToPixel + chartHeightToPixel;
-            }
+            const nbElementsPerLine  = parseInt(availableWidth / width, 10);
+            const nbLines            = parseInt(legendsData.length / nbElementsPerLine, 10);
+            availableHeight         -= nbLines * legend.circleSize * circleToPixel + chartHeightToPixel;
+        } else {
+            leftMargin      +=  widthLegend;
+            availableWidth  -=  widthLegend;
         }
 
         let yExtent = this.updateYExtent(extent(filterDatas, yLabelUnformattedFn), zeroStart);
-
         let xScale;
 
         if (dateHistogram) {
             xScale = scaleTime()
-              .domain(extent(data, xLabelFn));
+              .domain(extent(filterDatas, xLabelFn));
         } else {
             xScale = scaleLinear()
-              .domain(extent(data, xLabelFn));
+              .domain(extent(filterDatas, xLabelFn));
         }
 
         const yScale = scaleLinear()
@@ -176,18 +161,24 @@ class MultiLineGraph extends XYGraph {
         if(yTicks){
             yAxis.ticks(yTicks);
         }
-
+       
         let xTitlePosition = {
             left: leftMargin + availableWidth / 2,
             top: margin.top + availableHeight + chartHeightToPixel + xAxisHeight
         }
+
         let yTitlePosition = {
             // We use chartWidthToPixel to compensate the rotation of the title
             left: margin.left + chartWidthToPixel + (isVerticalLegend ? legend.width : 0),
             top: margin.top + availableHeight / 2
         }
 
-        if(brushEnabled){
+        if(hideXAxis) {
+            xAxis.tickValues([]);
+            xTitlePosition = null;   
+        }
+
+        if(brushEnabled) {
             this.brush
                 .extent([[0, 0], [availableWidth, availableHeight]])
                 .on("end", () => {

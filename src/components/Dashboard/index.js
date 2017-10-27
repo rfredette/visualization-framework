@@ -7,8 +7,8 @@ import CircularProgress from "material-ui/CircularProgress";
 import { Responsive, WidthProvider } from "react-grid-layout";
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
-import Visualization from "../Visualization";
 import FiltersToolBar from "../FiltersToolBar";
+import Composite from "../Composite";
 
 import { Actions as AppActions } from "../App/redux/actions";
 
@@ -199,7 +199,7 @@ export class DashboardView extends React.Component {
                                         key={visualization.id}
                                         data-grid={visualization}
                                     >
-                                        <Visualization
+                                        <Composite
                                             id={visualization.id}
                                             registerResize={this.registerResize.bind(this)}
                                             showInDashboard={true}

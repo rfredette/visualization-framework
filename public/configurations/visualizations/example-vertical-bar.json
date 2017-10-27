@@ -1,0 +1,16 @@
+{
+  "id": "example-vertical-bar",
+  "title": "Composite Visualization",
+  "description": "Composite visualization for testing.",
+  "author": "Anil Chauhan",
+  "creationDate": "10/16/2017",
+  "type": "composite",
+  "visualizations": [
+    {
+      "id": "vnf-status-linechart"
+    },
+    {
+      "id": "example-vnf-status-linechart"
+    }
+  ]
+}

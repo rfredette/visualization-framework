@@ -55,7 +55,10 @@ export default class HeatmapGraph extends XYGraph {
             yTickSizeInner,
             yTickSizeOuter,
             legendColumn,
-            yAxisPadding
+            yAxisPadding,
+            hideXAxis,
+            yLabelWidth,
+            legendWidth
         } = this.getConfiguredProperties();
 
 
@@ -75,7 +78,7 @@ export default class HeatmapGraph extends XYGraph {
         const isVerticalLegend = legend.orientation === 'vertical';
         const xLabelFn         = (d) => d[xColumn];
         const yLabelFn         = (d) => d[yColumn];
-        const legendFn         = (d) => d[legendColumn];
+        //const legendFn         = (d) => d[legendColumn];
         const label            = (d) => d["key"];
         const scale            = this.getMappedScaleColor(data, legendColumn);
         const getColor         = (d) => scale ? scale(d[colorColumn] || d[legendColumn] || d["key"]) : stroke.color || colors[0];
@@ -85,31 +88,27 @@ export default class HeatmapGraph extends XYGraph {
             .entries(data);
 
         let xAxisHeight       = xLabel ? chartHeightToPixel : 0;
-        let legendWidth       = legend.show && cellColumnsData.length ? this.longestLabelLength(data, legendFn) * chartWidthToPixel : 0;
+        let widthLegend       = legendWidth * chartWidthToPixel;
 
-        let yLabelWidth       = this.longestLabelLength(data, yLabelFn) * chartWidthToPixel;
+        let yAxisLabelWidth   = yLabelWidth * chartWidthToPixel;
 
-        let leftMargin        = margin.left + yLabelWidth + yAxisPadding * chartWidthToPixel;
+        let leftMargin        = margin.left + yAxisLabelWidth + yAxisPadding * chartWidthToPixel;
 
-        let availableWidth    = width - (margin.left + margin.right + yLabelWidth - yAxisPadding * chartWidthToPixel);
+        let availableWidth    = width - (margin.left + margin.right + yAxisLabelWidth - yAxisPadding * chartWidthToPixel);
         let availableHeight   = height - (margin.top + margin.bottom + chartHeightToPixel + xAxisHeight);
 
-        if (legend.show) {
-            legend.width = legendWidth;
+        if(legend.show)
+          legend.width = widthLegend;
 
-            // Compute the available space considering a legend
-            if (isVerticalLegend)
-            {
-                leftMargin      +=  legend.width;
-                availableWidth  -=  legend.width;
-            }
-            else
-            {
-                const nbElementsPerLine  = parseInt(availableWidth / legend.width, 10);
-                const nbLines            = parseInt(cellColumnsData.length / nbElementsPerLine, 10);
+        if (legend.show && !isVerticalLegend) {
 
-                availableHeight         -= nbLines * legend.circleSize * circleToPixel + chartHeightToPixel;
-            }
+            const nbElementsPerLine  = parseInt(availableWidth / legend.width, 10);
+            const nbLines            = parseInt(cellColumnsData.length / nbElementsPerLine, 10);
+            availableHeight         -= nbLines * legend.circleSize * circleToPixel + chartHeightToPixel;
+
+        } else {
+            leftMargin      +=  widthLegend;
+            availableWidth  -=  widthLegend;
         }
 
         //For Making xAxis BANDSCALE
@@ -174,6 +173,12 @@ export default class HeatmapGraph extends XYGraph {
             left: margin.left + chartWidthToPixel + (isVerticalLegend ? legend.width : 0),
             top: margin.top + availableHeight / 2
         }
+
+        if(hideXAxis) {
+            xAxis.tickValues([]);
+            xTitlePosition = null;   
+        }
+
         return (
             <div className="bar-graph">
                 {this.tooltip}

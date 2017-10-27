@@ -64,13 +64,15 @@ class LineGraph extends XYGraph {
           yTickSizeOuter,
           brushEnabled,
           zeroStart,
-          circleRadius
+          circleRadius,
+          hideXAxis,
+          yLabelWidth,
+          legendWidth
         } = this.getConfiguredProperties();
 
         const isVerticalLegend = legend.orientation === 'vertical';
         const xLabelFn         = (d) => d[xColumn];
         const yLabelFn         = (d) => d[yColumn];
-        const legendFn         = (d) => d[linesColumn];
         const label            = (d) => d["key"];
 
         const data = originalData.map(d => {
@@ -88,30 +90,27 @@ class LineGraph extends XYGraph {
             .entries(data);
 
         let xAxisHeight       = xLabel ? chartHeightToPixel : 0;
-        let legendWidth       = legend.show && linesData.length > 1 ? this.longestLabelLength(data, legendFn) * chartWidthToPixel : 0;
+        let widthLegend       = legendWidth * chartWidthToPixel;
 
-        let yLabelWidth       = this.longestLabelLength(data, yLabelFn, yTickFormat) * chartWidthToPixel;
-        let leftMargin        = margin.left + yLabelWidth;
-        let availableWidth    = width - (margin.left + margin.right + yLabelWidth);
+        let yAxisLabelWidth   = yLabelWidth * chartWidthToPixel;
+        let leftMargin        = margin.left + yAxisLabelWidth;
+        let availableWidth    = width - (margin.left + margin.right + yAxisLabelWidth);
         let availableHeight   = height - (margin.top + margin.bottom + chartHeightToPixel + xAxisHeight);
 
 
 
-        if (legend.show)
-        {
-            legend.width = legendWidth;
+        if(legend.show)
+          legend.width = widthLegend;
 
-            // Compute the available space considering a legend
-            if (isVerticalLegend)
-            {
-                leftMargin      +=  legend.width;
-                availableWidth  -=  legend.width;
-            }
-            else {
-                const nbElementsPerLine  = parseInt(availableWidth / legend.width, 10);
-                const nbLines            = parseInt(linesData.length / nbElementsPerLine, 10);
-                availableHeight         -= nbLines * legend.circleSize * circleToPixel + chartHeightToPixel;
-            }
+        if (legend.show && !isVerticalLegend) {
+
+            const nbElementsPerLine  = parseInt(availableWidth / legend.width, 10);
+            const nbLines            = parseInt(linesData.length / nbElementsPerLine, 10);
+            availableHeight         -= nbLines * legend.circleSize * circleToPixel + chartHeightToPixel;
+
+        } else {
+            leftMargin      +=  widthLegend;
+            availableWidth  -=  widthLegend;
         }
 
         let yExtent = this.updateYExtent(extent(data, yLabelFn), zeroStart);
@@ -168,6 +167,11 @@ class LineGraph extends XYGraph {
             // We use chartWidthToPixel to compensate the rotation of the title
             left: margin.left + chartWidthToPixel + (isVerticalLegend ? legend.width : 0),
             top: margin.top + availableHeight / 2
+        }
+
+        if(hideXAxis) {
+            xAxis.tickValues([]);
+            xTitlePosition = null;   
         }
 
         if(brushEnabled){

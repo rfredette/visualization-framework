@@ -15,7 +15,7 @@ export default class AbstractGraph extends React.Component {
     constructor(props, properties = {}) {
         super(props);
 
-        this.defaults = GraphManager.getDefaultProperties(properties);
+        this.defaults = GraphManager.getDefaultProperties(properties, props.properties);
 
         // Provide tooltips for subclasses.
         const { tooltip } = this.getConfiguredProperties();
@@ -213,6 +213,7 @@ export default class AbstractGraph extends React.Component {
           margin,
           fontColor,
           circleToPixel,
+          legendPadding
         } = this.getConfiguredProperties();
 
         const isVertical = legend.orientation === 'vertical';
@@ -222,7 +223,7 @@ export default class AbstractGraph extends React.Component {
         {
             // Place the legends in the bottom left corner
             let left = margin.left;
-            let top  = height - (margin.bottom + ((data.length - 1) * lineHeight));
+            let top  = height - (legendPadding + ((data.length - 1) * lineHeight));
 
             return (
                 <g>

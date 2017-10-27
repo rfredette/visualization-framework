@@ -74,7 +74,8 @@ const defaults = {
     },
     chartWidthToPixel: 6,           // Default value to convert a character's width into pixel
     chartHeightToPixel: 14,         // Default value to convert a character's height into pixel
-    circleToPixel: 3,               // Default value to convert the circle to pixel
+    circleToPixel: 3,
+    legendPadding: 10,
     legend: {
         show: true,                 // Show or not the legend style
         orientation: 'vertical',    // Orientation between 'vertical' and 'horizontal'
@@ -83,8 +84,9 @@ const defaults = {
     }
 }
 
-const getDefaultProperties = (properties) => {
-    return Object.assign({}, defaults, properties);
+const getDefaultProperties = (properties, compositeProperties) => {
+
+    return Object.assign({}, defaults, properties, compositeProperties);
 };
 
 

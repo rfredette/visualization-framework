@@ -4,7 +4,7 @@ import { Route } from "react-router";
 
 import AppContainer from "./components/App/AppContainer.js";
 import Dashboard from "./components/Dashboard"
-import Visualization from "./components/Visualization"
+import Visualization from "./components/Composite"
 
 
 class App extends Component {
