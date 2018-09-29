@@ -9,7 +9,7 @@
         "borderRadius": "0",
         "targetedColumn":"activeNSGCount",
         "colors":[
-            "red"
+            
         ]
     }
 }
